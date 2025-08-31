@@ -57,3 +57,6 @@ temp/
 
 # Air (hot reload) files
 tmp/
+
+.mod
+.sum

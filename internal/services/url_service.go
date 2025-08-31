@@ -9,10 +9,10 @@ import (
 )
 
 type URLService struct {
-	repo *repository.MemoryRepo
+	repo repository.Repository // ✅ instead of *MemoryRepo
 }
 
-func NewURLService(repo *repository.MemoryRepo) *URLService {
+func NewURLService(repo repository.Repository) *URLService {
 	return &URLService{repo: repo}
 }
 
