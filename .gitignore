@@ -60,3 +60,5 @@ tmp/
 
 .mod
 .sum
+
+test_mongo.go

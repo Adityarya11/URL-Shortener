@@ -19,7 +19,6 @@ func main() {
 
 	useMongo := os.Getenv("USE_MONGO")
 
-	// ✅ declare once here
 	var service *services.URLService
 
 	if useMongo == "true" {
