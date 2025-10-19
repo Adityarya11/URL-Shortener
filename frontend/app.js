@@ -1,7 +1,7 @@
 // frontend/app.js
 // IMPORTANT: set API_BASE_URL to your deployed Go backend (Render) URL.
 // For local testing use: "http://localhost:8000"
-const API_BASE_URL = "https://your-backend-on-render.example.com";
+const API_BASE_URL = "https://url-shortener-5qu1.onrender.com";
 
 const form = document.getElementById('shorten-form');
 const longUrlInput = document.getElementById('long-url');
