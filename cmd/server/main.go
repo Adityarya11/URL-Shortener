@@ -45,7 +45,7 @@ func main() {
 	// --- 2. ADD CORS MIDDLEWARE ---
 	// IMPORTANT: Change "https://your-frontend.vercel.app" to your *actual* Vercel URL
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"https://url-shortener-o6wiw9ss4-aditya-aryas-projects-0bf8d1de.vercel.app/", "http://localhost:3000"},
+		AllowedOrigins: []string{"https://url-shortener-o6wiw9ss4-aditya-aryas-projects-0bf8d1de.vercel.app", "http://localhost:3000"},
 		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
 		AllowedHeaders: []string{"Content-Type"},
 	})
