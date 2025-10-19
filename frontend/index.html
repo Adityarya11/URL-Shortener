@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aditya's URL Shortener</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: grid;
+            place-items: center;
+            min-height: 90vh;
+            background: #f4f4f4;
+        }
+
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type="url"],
+        input[type="text"] {
+            width: 300px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        #error {
+            margin-top: 15px;
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>My URL Shortener</h2>
+        <form id="shorten-form">
+            <label for="long-url">Enter URL to shorten:</label><br>
+            <input type="url" id="long-url" name="longUrl" placeholder="https://example.com" required>
+            <br>
+            <label for="custom-code">Optional custom code:</label><br>
+            <input type="text" id="custom-code" name="customCode" placeholder="my-link">
+            <br>
+            <button type="submit">Shorten</button>
+        </form>
+        <div id="result"></div>
+        <div id="error"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
