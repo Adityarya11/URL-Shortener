@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"log"
 	"url-shortener/internal/models"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,7 +23,9 @@ func (r *MongoRepo) Save(url *models.URL) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("✅ Saved to Mongo: %s -> %s\n", url.ShortCode, url.OriginalURL)
+
+	///   To debug the short code, whether it is saved to the right url or not...
+	// log.Printf("✅ Saved to Mongo: %s -> %s\n", url.ShortCode, url.OriginalURL)
 	return nil
 }
 
