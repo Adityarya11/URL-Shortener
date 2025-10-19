@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/cors" // <-- 1. IMPORT "cors"
 
 	"url-shortener/internal/handlers"
 	"url-shortener/internal/middleware"
@@ -41,16 +42,36 @@ func main() {
 	rl := middleware.NewRateLimiterFromEnv()
 	limitedHandler := rl.Middleware(router)
 
-	addr := ":8000"
+	// --- 2. ADD CORS MIDDLEWARE ---
+	// IMPORTANT: Change "https://your-frontend.vercel.app" to your *actual* Vercel URL
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"https://your-frontend.vercel.app", "http://localhost:3000"},
+		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type"},
+	})
+
+	// Wrap your rate-limited handler with the CORS handler
+	finalHandler := c.Handler(limitedHandler)
+	// --- END CORS SECTION ---
+
+	// --- 3. GET PORT FROM HEROKU ENV ---
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000" // Default for local testing
+	}
+	addr := ":" + port // Construct the address for ListenAndServe
+	// --- END PORT SECTION ---
+
 	server := &http.Server{
-		Addr:         addr,
-		Handler:      limitedHandler,
+		Addr:         addr,         // <-- 4. USE THE DYNAMIC 'addr'
+		Handler:      finalHandler, // <-- 5. USE THE FINAL 'finalHandler' (with CORS)
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
 	}
 
-	log.Printf("Server started at http://localhost%s\n", addr)
+	// --- 6. UPDATE LOG MESSAGE ---
+	log.Printf("Server started on port %s\n", port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

@@ -1,11 +1,8 @@
-// *** IMPORTANT ***
-// Change this to your backend's URL once it's deployed!
-// For local testing: const API_BASE_URL = "http://localhost:8080"; 
-// For production: const API_BASE_URL = "https://your-backend-url.onrender.com";
+// frontend/app.js
+// IMPORTANT: set API_BASE_URL to your deployed Go backend (Render) URL.
+// For local testing use: "http://localhost:8000"
+const API_BASE_URL = "https://your-backend-on-render.example.com";
 
-const API_BASE_URL = "https://your-backend-url-goes-here.onrender.com";
-
-// Get the elements from the HTML
 const form = document.getElementById('shorten-form');
 const longUrlInput = document.getElementById('long-url');
 const customCodeInput = document.getElementById('custom-code');
@@ -13,51 +10,47 @@ const resultDiv = document.getElementById('result');
 const errorDiv = document.getElementById('error');
 
 form.addEventListener('submit', async (event) => {
-    event.preventDefault(); // Stop the form from reloading the page
-
-    // Clear previous results
+    event.preventDefault();
     resultDiv.textContent = '';
     errorDiv.textContent = '';
 
-    const longUrl = longUrlInput.value;
-    const customCode = customCodeInput.value;
+    const longUrl = longUrlInput.value.trim();
+    const customCode = customCodeInput.value.trim();
 
-    // Prepare the data to send
-    const body = {
-        long_url: longUrl,
-    };
-
-    if (customCode) {
-        body.custom_code = customCode;
+    if (!longUrl) {
+        errorDiv.textContent = 'Please enter a URL.';
+        return;
     }
 
+    // Build body matching backend expectation: { url, customCode }
+    const body = { url: longUrl };
+    if (customCode) body.customCode = customCode;
+
     try {
-        // Use the fetch() API to send a POST request
-        const response = await fetch(`${API_BASE_URL}/shorten`, {
+        const res = await fetch(`${API_BASE_URL}/shorten`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(body)
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (!response.ok) {
-            // If the server returns an error (like 400 or 500)
-            throw new Error(data.error || 'Something went wrong');
+        if (!res.ok) {
+            // backend should return reasonable error JSON or text
+            const msg = data.error || data.message || (data && (data.error || JSON.stringify(data))) || 'Server error';
+            throw new Error(msg);
         }
 
-        // Success! Display the short URL
-        const shortUrl = `${API_BASE_URL}/${data.short_code}`;
-        resultDiv.innerHTML = `Success! Your short URL is: <a href="${shortUrl}" target="_blank">${shortUrl}</a>`;
-
-        // Clear the inputs
+        // backend returns { shortCode, originalUrl, ... }
+        const shortCode = data.shortCode || data.short_code || data.short; // tolerant
+        const shortUrl = `${API_BASE_URL}/${shortCode}`;
+        resultDiv.innerHTML = `Success! Short URL: <a href="${shortUrl}" target="_blank" rel="noopener noreferrer">${shortUrl}</a>`;
         longUrlInput.value = '';
         customCodeInput.value = '';
-
     } catch (err) {
-        // Show the error message
         errorDiv.textContent = `Error: ${err.message}`;
+        console.error(err);
     }
 });

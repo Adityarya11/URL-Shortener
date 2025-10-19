@@ -30,7 +30,7 @@ COPY --from=builder /bin/server /bin/server
 RUN apk --no-cache add ca-certificates
 
 # Expose the port your Go app listens on
-EXPOSE 8080 
+EXPOSE 8000 
 
 # The command to run when the container starts
 ENTRYPOINT ["/bin/server"]
