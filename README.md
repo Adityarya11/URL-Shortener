@@ -1,284 +1,164 @@
-# URL Shortener - MongoDB Edition
+# Go URL Shortener [🔗](https://url-shortener-liart-two.vercel.app/)
 
-A production-ready URL shortener built from scratch in Go with MongoDB to learn system design principles and NoSQL patterns.
-
-## Why MongoDB for URL Shortener?
-
-- **Document-based storage**: URLs + metadata fit perfectly in JSON documents
-- **Horizontal scaling**: Easy sharding across multiple servers
-- **Flexible schema**: Add new fields without migrations
-- **High write throughput**: Perfect for URL shortening workloads
-- **JSON native**: No ORM complexity
+This is a high-performance URL shortener service built in Go, designed as an educational project to explore system design, API development, and database integration. It provides a simple API to create and resolve short URLs, with a pluggable repository layer supporting both in-memory and MongoDB persistent storage.
 
 ## Features
 
-- ✅ URL shortening with custom and generated codes
-- ✅ MongoDB document storage with TTL
-- ✅ Base62 encoding for short codes
-- ✅ Analytics and click tracking
-- ✅ In-memory caching (Phase 1) → Redis (Phase 3)
-- ✅ Rate limiting and CORS middleware
-- ✅ Comprehensive testing
-- ✅ Production-ready logging
+- **API Endpoints:** Provides `POST /shorten` to create links and `GET /{code}` to handle redirects.
+- **Dual Storage Modes:** A toggleable persistence layer, configurable via an environment variable.
+  - **In-Memory:** An ephemeral in-memory map for rapid development and testing.
+  - **MongoDB:** A persistent MongoDB backend for production use.
+- **Short Code Generation:** Supports both user-defined custom codes and random 6-character alphanumeric code generation.
+- **Middleware:** Includes an in-memory, token-bucket rate limiter and configurable CORS middleware for API hardening.
+- **Configuration:** All settings are managed via environment variables for easy setup and deployment.
+- **Containerization:** Fully containerized with a multi-stage `Dockerfile` for efficient and repeatable production builds.
 
-## Quick Start
+## Technology Stack
+
+- **Backend:** Go (v1.22.5)
+- **Router:** Standard Library `http.ServeMux`
+- **Database:** MongoDB (using `go.mongodb.org/mongo-driver`)
+- **Middleware:** `github.com/rs/cors` and a custom token-bucket rate limiter.
+- **Deployment:** Docker (Future implementations!!)
+
+## Architecture Overview
+
+This project follows a clean, layered architecture to separate concerns and promote modularity.
+
+- **Handlers (`internal/handlers`):** Responsible for parsing HTTP requests, validating input, and serializing JSON responses.
+- **Services (`internal/services`):** Contains the core business logic, such as validating a URL, generating a short code, and checking for expiration.
+- **Repository (`internal/repository`):** An interface-based layer (`Repository`) that abstracts all data storage operations. This allows the service layer to be agnostic of the database.
+- **Main (`cmd/server`):** The application entry point responsible for initializing the database connection, injecting dependencies (like the `MongoRepo` or `MemoryRepo` into the `URLService`), setting up the router, and starting the HTTP server.
+
+## Getting Started
 
 ### Prerequisites
 
-- Go 1.21+
-- MongoDB 7.0+ (installed locally)
+- Go 1.22.5 or later
+- Docker (for containerized deployment)
+- A MongoDB Atlas account or a local MongoDB instance (if using `USE_MONGO=true`)
 
-### MongoDB Installation
+### Configuration
 
-**macOS (Homebrew)**:
+1.  Copy the example environment file:
+    ```sh
+    cp .env.example .env
+    ```
+2.  Edit the `.env` file with your settings:
+    - `USE_MONGO`: Set to `true` to use MongoDB, or `false` to use the in-memory store.
+    - `MONGO_URI`: Your MongoDB connection string (required if `USE_MONGO=true`).
+    - `MONGO_DB`: Your MongoDB database name.
+    - `RATE_LIMIT_REQUESTS`: Max requests per window (e.g., `100`).
+    - `RATE_LIMIT_WINDOW`: Duration of the window (e.g., `1h`).
 
-```bash
-brew tap mongodb/brew
-brew install mongodb-community
-brew services start mongodb/brew/mongodb-community
-```
+### Running Locally
 
-**Ubuntu/Debian**:
+1.  Install dependencies:
+    ```sh
+    go mod tidy
+    ```
+2.  Run the server (uses settings from `.env` file):
+    ```sh
+    go run ./cmd/server/main.go
+    ```
+    The server will start on port `8000` (or as specified by `$PORT`).
 
-```bash
-# Import MongoDB public GPG Key
-curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor
+### Running with Docker (Just for flexing)
 
-# Create list file
-echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+1.  Build the Docker image:
+    ```sh
+    docker build -t url-shortener .
+    ```
+2.  Run the container, passing in your environment file:
+    ```sh
+    docker run -p 8000:8000 --env-file .env url-shortener
+    ```
 
-# Install MongoDB
-sudo apt-get update
-sudo apt-get install -y mongodb-org
+## API Endpoints
 
-# Start MongoDB
-sudo systemctl start mongod
-sudo systemctl enable mongod
-```
+### `POST /shorten`
 
-**Windows**:
-Download MongoDB Community Server from [official website](https://www.mongodb.com/try/download/community)
+Creates a new short URL.
 
-### Development Setup
-
-1. **Clone and setup**:
-
-   ```bash
-   git clone <your-repo>
-   cd url-shortener
-   make setup
-   ```
-
-2. **Start MongoDB**:
-
-   ```bash
-   make mongo-start
-   ```
-
-3. **Initialize Go module**:
-
-   ```bash
-   go mod init url-shortener
-   go mod tidy
-   ```
-
-4. **Start the server**:
-   ```bash
-   make run
-   ```
-
-The API will be available at `http://localhost:8000`
-
-### API Usage
-
-**Shorten a URL**:
-
-```bash
-curl -X POST http://localhost:8000/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "customCode": "example"}'
-```
-
-**Response**:
+**Request Body:**
 
 ```json
 {
-  "shortCode": "example",
-  "shortUrl": "http://localhost:8000/example",
-  "originalUrl": "https://example.com",
-  "expiresAt": "2026-08-28T00:00:00Z"
+  "url": "[https://github.com/google/go-cmp](https://github.com/google/go-cmp)",
+  "customCode": "go-cmp"
 }
 ```
 
-**Access shortened URL**:
+- `url` (string, required): The original URL to shorten.
+- `customCode` (string, Optional): A desired custom short code. If not provided, a random 6-character code will be generated.
 
-```bash
-curl -L http://localhost:8000/example
-# Redirects to https://example.com
-```
-
-**Get analytics**:
-
-```bash
-curl http://localhost:8000/analytics/example
-```
-
-## MongoDB Document Structure
+**Success Response (200 OK):**
 
 ```json
 {
-  "_id": ObjectId("..."),
-  "shortCode": "abc123",
-  "originalUrl": "https://example.com",
-  "customCode": true,
-  "clickCount": 42,
-  "createdAt": ISODate("2025-08-28T00:00:00Z"),
-  "expiresAt": ISODate("2026-08-28T00:00:00Z"),
-  "userId": "user123",
-  "metadata": {
-    "title": "Example Website",
-    "description": "An example website"
-  },
-  "analytics": {
-    "countries": {"US": 20, "IN": 15, "UK": 7},
-    "browsers": {"Chrome": 30, "Safari": 12},
-    "referrers": ["google.com", "facebook.com"]
-  }
+  "shortCode": "go-cmp",
+  "shortUrl": "http://localhost:8000/go-cmp",
+  "originalUrl": "https://github.com/google/go-cmp"
 }
 ```
 
-## Project Phases
+**Error Response (400 Bad Request):**
 
-### Phase 1: In-Memory Storage ✅
-
-- Basic HTTP server with `net/http`
-- In-memory map for URLs
-- Base62 short code generation
-- JSON API endpoints
-
-### Phase 2: MongoDB Integration 🔄
-
-- MongoDB connection and operations
-- Document-based URL storage
-- TTL (Time To Live) for expiration
-- Basic indexing strategy
-
-### Phase 3: Redis Caching 📋
-
-- Redis for frequently accessed URLs
-- Cache-aside pattern
-- Performance optimization
-
-### Phase 4: Advanced Features 📋
-
-- Rate limiting middleware
-- Bulk operations
-- Advanced analytics
-- Custom domains
-
-### Phase 5: Production Scaling 📋
-
-- MongoDB replica sets
-- Sharding strategies
-- Performance monitoring
-- Load testing
-
-## Architecture
-
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Client    │───▶│   Go API    │───▶│  Service    │
-└─────────────┘    │   Server    │    │   Layer     │
-                   └─────────────┘    └─────────────┘
-                           │                 │
-                           ▼                 ▼
-                   ┌─────────────┐    ┌─────────────┐
-                   │    Redis    │    │  MongoDB    │
-                   │   (Cache)   │    │ (Database)  │
-                   └─────────────┘    └─────────────┘
+```json
+{
+  "error": "short code already exists"
+}
 ```
 
-## Development Commands
+### `GET /{code}`
 
-```bash
-# Setup development environment
-make setup
+Redirects a short code to its original URL.
 
-# Start/stop MongoDB
-make mongo-start
-make mongo-stop
-make mongo-status
+- `code` (string, path parameter): The short code to resolve.
 
-# Development
-make run          # Run the server
-make dev          # Run with hot reload (requires air)
-make test         # Run tests
-make coverage     # Test coverage
-make lint         # Lint code
+**Success Response (302 Found):**
 
-# MongoDB operations
-make mongo-shell  # Connect to MongoDB shell
+- Redirects to the `OriginalURL` stored for the code.
 
-# Build
-make build        # Development build
-make build-prod   # Production build
+- Increments the `ClickCount` for the link.
+
+**Error Response (404 Not Found):**
+
+- Returns if the code does not exist or has expired.
+
+### `GET /health`
+
+A health check endpoint to confirm the service is running.
+**Success Response (200 OK):**
+
+- `OK`
+
+## Project Structure
+
+```
+url-shortener/
+├── cmd/server/main.go     # Main application entry point and dependency injection.
+├── internal/
+│   ├── handlers/          # HTTP handlers (handler.go) and router setup (router.go).
+│   ├── middleware/        # HTTP middleware (ratelimit.go).
+│   ├── models/            # Core data structures (url.go).
+│   ├── repository/        # Data storage layer:
+│   │   ├── interface.go   # The core Repository interface.
+│   │   ├── memory.go      # In-memory map implementation.
+│   │   └── mongo.go       # MongoDB implementation.
+│   └── services/          # Core business logic (url_service.go).
+├── pkg/database/          # Database connection helpers (mongodb.go).
+├── frontend/              # A simple static HTML/JS frontend for testing.
+├── .env.example           # Example environment variables.
+├── Dockerfile             # Multi-stage Docker build file.
+├── go.mod                 # Go module dependencies.
+└── Makefile               # Helper commands for development (build, test, run).
 ```
 
-## MongoDB Advantages for This Project
+## Future Improvements
 
-### 1. **Natural Document Structure**
+- Distributed Caching: Integrate a Redis cache (using the `pkg/database/redis.go` stub) to sit in front of the MongoDB repository. This will reduce database load for popular links and improve redirect latency.
 
-URLs and their metadata fit perfectly in JSON documents - no complex relational mapping needed.
+- Advanced Analytics: Expand the `IncrementClicks` function to run in a goroutine, capturing and storing request metadata (User-Agent, Referrer, Geolocation) for a future analytics dashboard.
 
-### 2. **Horizontal Scaling**
-
-```javascript
-// Easy sharding by shortCode
-sh.shardCollection("urlshortener.urls", { shortCode: 1 });
-```
-
-### 3. **Flexible Analytics**
-
-```javascript
-// Easy to add new analytics fields
-db.urls.updateOne({ shortCode: "abc123" }, { $inc: { "analytics.mobile": 1 } });
-```
-
-### 4. **TTL Collections**
-
-```javascript
-// Automatic URL expiration
-db.urls.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-```
-
-### 5. **Aggregation Pipelines**
-
-```javascript
-// Complex analytics queries
-db.urls.aggregate([
-  { $match: { createdAt: { $gte: ISODate("2025-01-01") } } },
-  { $group: { _id: "$userId", totalClicks: { $sum: "$clickCount" } } },
-]);
-```
-
-## Performance Targets
-
-- **Latency**: <50ms for shortening, <10ms for redirection
-- **Throughput**: 1000+ requests/second
-- **Storage**: 10M+ URLs with efficient indexing
-- **Cache Hit Rate**: 90%+ for popular URLs
-
-## Contributing
-
-This is an educational project for learning system design. Feel free to:
-
-1. Fork and experiment
-2. Add new features
-3. Optimize performance
-4. Add more comprehensive tests
-
-## Learning Resources
-
-- [MongoDB Go Driver Documentation](https://pkg.go.dev/go.mongodb.org/mongo-driver)
-- [MongoDB Best Practices](https://www.mongodb.com/developer/products/mongodb/mongodb-schema-design-best-practices/)
-- [System Design Primer](https://github.com/donnemartin/system-design-primer)
+- Link Expiration: Implement TTL indexing in MongoDB to automatically purge expired links, or create a background job to handle cleanup based on the `ExpiresAt` field.

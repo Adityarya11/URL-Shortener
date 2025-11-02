@@ -6,21 +6,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aditya's URL Shortener</title>
     <style>
+        /* === 1. Reset and Body Styling === */
         body {
             font-family: sans-serif;
-            display: grid;
-            place-items: center;
-            min-height: 90vh;
             background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            /* Add some padding around the page */
         }
 
+        /* === 2. NEW 3-Column Page Wrapper === */
+        .page-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            /* Limit total width */
+            margin: 0 auto;
+            /* Center the wrapper */
+        }
+
+        /* === 3. NEW Ad Sidebar Styling === */
+        .sidebar {
+            width: 160px;
+            /* Common vertical ad width */
+            flex-shrink: 0;
+            /* Prevent sidebars from shrinking */
+            position: sticky;
+            /* Makes ads "stick" as user scrolls */
+            top: 20px;
+        }
+
+        /* === 4. UPDATED Main Content Container === */
         .container {
+            /* This is your existing container */
+            flex-grow: 1;
+            /* Allows it to take up the middle space */
+            max-width: 500px;
+            /* Keep your form from getting too wide */
             background: #fff;
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
+        /* === 5. Your Existing Styles (No changes needed) === */
         input[type="url"],
         input[type="text"] {
             width: 300px;
@@ -54,25 +86,43 @@
             color: red;
         }
     </style>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4639258361209663"
+        crossorigin="anonymous"></script>
+
 </head>
 
 <body>
-    <div class="container">
-        <h2>My URL Shortener</h2>
-        <form id="shorten-form">
-            <label for="long-url">Enter URL to shorten:</label><br>
-            <input type="url" id="long-url" name="longUrl" placeholder="https://example.com" required>
-            <br>
-            <label for="custom-code">Optional custom code:</label><br>
-            <input type="text" id="custom-code" name="customCode" placeholder="my-link">
-            <br>
-            <button type="submit">Shorten</button>
-        </form>
-        <div id="result"></div>
-        <div id="error"></div>
+
+    <div class="page-wrapper">
+
+        <aside class="sidebar left-ad-bar">
+
+        </aside>
+
+        <main class="container">
+            <h2>My URL Shortener</h2>
+            <form id="shorten-form">
+                <label for="long-url">Enter URL to shorten:</label><br>
+                <input type="url" id="long-url" name="longUrl" placeholder="https://example.com" required>
+                <br>
+                <label for="custom-code">Optional custom code:</label><br>
+                <input type="text" id="custom-code" name="customCode" placeholder="my-link">
+                <br>
+                <button type="submit">Shorten</button>
+            </form>
+            <div id="result"></div>
+            <div id="error"></div>
+        </main>
+
+        <aside class="sidebar right-ad-bar">
+
+        </aside>
+
     </div>
 
     <script src="app.js"></script>
+
 </body>
 
 </html>
