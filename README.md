@@ -74,6 +74,8 @@ This project follows a clean, layered architecture to separate concerns and prom
     docker run -p 8000:8000 --env-file .env url-shortener
     ```
 
+### **[Watch the demo here](https://drive.google.com/file/d/1S3Wz4k11wxUkmCITOPuaKU06dcRem56P/view?usp=sharing)**
+
 ## API Endpoints
 
 ### `POST /shorten`
