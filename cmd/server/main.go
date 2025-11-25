@@ -26,11 +26,11 @@ func main() {
 		db := database.ConnectMongo()
 		repo := repository.NewMongoRepo(db, os.Getenv("MONGO_COLLECTION"))
 		urlService = services.NewURLService(repo)
-		log.Println("🚀 Running with MongoDB repo")
+		log.Println("==> Running with MongoDB repo")
 	} else {
 		repo := repository.NewMemoryRepo()
 		urlService = services.NewURLService(repo)
-		log.Println("🚀 Running with in-memory repo")
+		log.Println("==> Running with in-memory repo")
 	}
 
 	handler := &handlers.Handler{Service: urlService}

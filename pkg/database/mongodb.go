@@ -16,7 +16,7 @@ func ConnectMongo() *mongo.Database {
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
-		log.Fatalf("❌ Failed to create Mongo client: %v", err)
+		log.Fatalf("Failed to create Mongo client: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -24,15 +24,15 @@ func ConnectMongo() *mongo.Database {
 
 	err = client.Connect(ctx)
 	if err != nil {
-		log.Fatalf("❌ Failed to connect to Mongo: %v", err)
+		log.Fatalf("Failed to connect to Mongo: %v", err)
 	}
 
 	// Test ping
 	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatalf("❌ MongoDB ping failed: %v", err)
+		log.Fatalf("MongoDB ping failed: %v", err)
 	}
 
-	log.Println("✅ Connected to MongoDB Atlas")
+	log.Println("Connected to MongoDB Atlas")
 
 	return client.Database(dbName)
 }
