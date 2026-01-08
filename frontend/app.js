@@ -9,6 +9,12 @@ const customCodeInput = document.getElementById('custom-code');
 const resultDiv = document.getElementById('result');
 const errorDiv = document.getElementById('error');
 
+const express = require('express');
+const cors = require('cors');
+const app = express();
+
+app.use(cors());
+
 form.addEventListener('submit', async (event) => {
     event.preventDefault();
     resultDiv.textContent = '';
